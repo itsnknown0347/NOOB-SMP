@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MC Leaderboard</title>
+  <style>
+    body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
+    h1 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 0 5px #ccc; }
+    th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+    th { background: #333; color: white; }
+  </style>
+</head>
+<body>
+  <h1>🏆 Player Stats Leaderboard</h1>
+  <table id="leaderboard">
+    <tr><th>Player</th><th>Kills</th><th>Deaths</th><th>K/D</th><th>Playtime</th></tr>
+  </table>
+
+  <script>
+    fetch("http://sgp-free-4.sryzen.cloud:26577/players")
+      .then(response => response.json())
+      .then(data => {
+        const table = document.getElementById("leaderboard");
+        const players = data.players;
+
+        players.sort((a, b) => (b.kills || 0) - (a.kills || 0));
+
+        players.forEach(p => {
+          const name = p.name || "Unknown";
+          const kills = p.kills || 0;
+          const deaths = p.deaths || 0;
+          const kd = deaths === 0 ? kills : (kills / deaths).toFixed(2);
+          const playtime = Math.round(p.minutesPlayed / 60) + " hrs";
+
+          table.innerHTML += `<tr>
+            <td>${name}</td>
+            <td>${kills}</td>
+            <td>${deaths}</td>
+            <td>${kd}</td>
+            <td>${playtime}</td>
+          </tr>`;
+        });
+      });
+  </script>
+</body>
+</html>
