@@ -1,45 +1,104 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>MC Leaderboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Noob SMP Leaderboard</title>
   <style>
-    body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
-    h1 { text-align: center; }
-    table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 0 5px #ccc; }
-    th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
-    th { background: #333; color: white; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background-color: #121212;
+      color: #00f5d4;
+      text-align: center;
+    }
+    h1 {
+      margin: 20px 0;
+      font-size: 2rem;
+    }
+    table {
+      margin: 0 auto;
+      border-collapse: collapse;
+      width: 90%;
+      max-width: 800px;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #333;
+    }
+    th {
+      background-color: #00f5d4;
+      color: #000;
+    }
+    td {
+      color: #fff;
+    }
+    .error {
+      color: #ff4b4b;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
-  <h1>🏆 Player Stats Leaderboard</h1>
-  <table id="leaderboard">
-    <tr><th>Player</th><th>Kills</th><th>Deaths</th><th>K/D</th><th>Playtime</th></tr>
+  <h1>🏆 Noob SMP - Player Stats</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Player</th>
+        <th>Kills</th>
+        <th>Deaths</th>
+        <th>K/D</th>
+        <th>Playtime</th>
+      </tr>
+    </thead>
+    <tbody id="player-table">
+      <tr><td colspan="5">🔄 Loading player data...</td></tr>
+    </tbody>
   </table>
 
+  <div class="error" id="error-message"></div>
+
   <script>
-    fetch("http://sgp-free-4.sryzen.cloud:26577/info/players")
-      .then(response => response.json())
+    const API_URL = "https://corsproxy.io/?http://sgp-free-4.sryzen.cloud:26577/info/players";
+
+    fetch(API_URL)
+      .then(res => res.json())
       .then(data => {
-        const table = document.getElementById("leaderboard");
-        const players = data.players;
+        const tbody = document.getElementById("player-table");
+        tbody.innerHTML = "";
 
-        players.sort((a, b) => (b.kills || 0) - (a.kills || 0));
+        if (!data.players || data.players.length === 0) {
+          tbody.innerHTML = "<tr><td colspan='5'>⚠️ No player data available</td></tr>";
+          return;
+        }
 
-        players.forEach(p => {
-          const name = p.name || "Unknown";
-          const kills = p.kills || 0;
-          const deaths = p.deaths || 0;
+        data.players.sort((a, b) => (b.kills || 0) - (a.kills || 0));
+
+        data.players.forEach(player => {
+          const name = player.name || "Unknown";
+          const kills = player.kills || 0;
+          const deaths = player.deaths || 0;
           const kd = deaths === 0 ? kills : (kills / deaths).toFixed(2);
-          const playtime = Math.round(p.minutesPlayed / 60) + " hrs";
+          const playtime = Math.floor((player.minutesPlayed || 0) / 60) + " hrs";
 
-          table.innerHTML += `<tr>
-            <td>${name}</td>
-            <td>${kills}</td>
-            <td>${deaths}</td>
-            <td>${kd}</td>
-            <td>${playtime}</td>
-          </tr>`;
+          tbody.innerHTML += `
+            <tr>
+              <td>${name}</td>
+              <td>${kills}</td>
+              <td>${deaths}</td>
+              <td>${kd}</td>
+              <td>${playtime}</td>
+            </tr>
+          `;
         });
+      })
+      .catch(err => {
+        console.error("Fetch error:", err);
+        document.getElementById("player-table").innerHTML =
+          "<tr><td colspan='5'>❌ Failed to load player data</td></tr>";
+        document.getElementById("error-message").textContent =
+          "Could not connect to the server. Make sure it's running and the URL is valid.";
       });
   </script>
 </body>
